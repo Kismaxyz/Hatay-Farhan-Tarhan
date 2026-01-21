@@ -1,3 +1,4 @@
+pyautogui 
 fastapi
 uvicorn
 discord.py
