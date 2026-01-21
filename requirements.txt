@@ -1,13 +1,5 @@
+fastapi
+uvicorn
+discord.py
+python-multipart
 requests
-pyautogui
-Pillow
-opencv-python
-sounddevice
-numpy
-scipy
-pynput
-pywin32
-cryptography
-pygame
-pyperclip
-pyttsx3
