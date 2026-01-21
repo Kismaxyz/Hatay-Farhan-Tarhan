@@ -452,9 +452,11 @@ async def receive_result(
     file: UploadFile = File(None)
 ):
     if id not in sessions:
+        log_to_gui(f"⚠️ Received result from UNKNOWN client: {id}")
         return {"status": "error", "message": "Unknown Client"}
 
-    log_to_gui(f"📥 Result from {id} for {type}")
+    file_status = f"(with file: {file.filename})" if file else "(no file)"
+    log_to_gui(f"📥 Received {type} result from {id} {file_status}")
     gui_queue.put(("result", {"id": id, "type": type, "text": text_result}))
     
     async def _send_discord_msg(channel_id, text=None, file_bytes=None, filename=None):
