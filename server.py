@@ -10,7 +10,9 @@ from typing import Dict, Optional, List
 import os
 
 # --- CONFIGURATION ---
-DISCORD_TOKEN = "MTQ2MzM1NTE0MTE3NTM3Nzk0MA.GBlXFP.VAEFIRI8j-IvxAAa9iH-0G4Qb3qEOG5Uyg8F2U"  # USER MUST REPLACE THIS
+# The token is read from Environment Variables on Render for security.
+# If not found, it uses the hardcoded one (not recommended for public GitHub).
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "MTQ2MzM1NTE0MTE3NTM3Nzk0MA.G16ZxW.k9O458HDKuDAp-96cDsPMwSwogT5VaMGam1moQ") 
 GUILD_ID = None # Optional: Lock to specific guild if needed
 
 # --- DATA STRUCTURES ---
