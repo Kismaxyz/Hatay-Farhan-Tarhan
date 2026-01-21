@@ -36,6 +36,7 @@ class ClientSession:
         self.command_results = []
 
 # In-memory storage
+sessions: Dict[str, ClientSession] = {}
 current_target_id: Optional[str] = None
 
 # Remote Control Data
@@ -897,7 +898,9 @@ def run_discord_bot():
 
 def run_fastapi():
     try:
-        config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="error")
+        port = int(os.getenv("PORT", 8000))
+        console_log(f"🌍 Starting FastAPI on port {port}")
+        config = uvicorn.Config(app, host="0.0.0.0", port=port, log_level="info")
         server = uvicorn.Server(config)
         server.run()
     except OSError as e:
