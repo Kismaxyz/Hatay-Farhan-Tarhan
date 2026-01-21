@@ -10,9 +10,9 @@ from typing import Dict, Optional, List
 import os
 
 # --- CONFIGURATION ---
-# The token is read from Environment Variables on Render for security.
-# If not found, it uses the hardcoded one (not recommended for public GitHub).
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "MTQ2MzM1NTE0MTE3NTM3Nzk0MA.G16ZxW.k9O458HDKuDAp-96cDsPMwSwogT5VaMGam1moQ") 
+# IMPORTANT: Never put your token here! Upload this file to GitHub, 
+# then add your token in the "Environment" tab on Render.
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN") 
 GUILD_ID = None # Optional: Lock to specific guild if needed
 
 # --- DATA STRUCTURES ---
